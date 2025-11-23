@@ -37,25 +37,40 @@ class Werewolf(Agent):
         """
         super().__init__(config, name, game_id, Role.WEREWOLF)
 
-    def whisper(self) -> str:
-        """Return response to whisper request.
-
-        囁きリクエストに対する応答を返す.
-
-        Returns:
-            str: Whisper message / 囁きメッセージ
-        """
-        return super().whisper()
+# src/agent/werewolf.py の talk() と whisper() メソッドをオーバーライド
 
     def talk(self) -> str:
-        """Return response to talk request.
+        """LLMを用いてトークリクエストに対する応答を返す（嘘を含む可能性あり）。"""
+        # 人狼陣営の目標
+        goal = "自分の人狼であることを隠し、村人陣営を欺き、人狼陣営の勝利に貢献すること。"
+        
+        return self._generate_llm_utterance(
+            role_goal=goal,
+            is_deceptive_context=True, # 嘘戦略を許可
+            is_whisper=False
+        )
 
-        トークリクエストに対する応答を返す.
+    def whisper(self) -> str:
+        """LLMを用いて囁きリクエストに対する応答を返す（真実）。"""
+        # 人狼間の会話なので、真実（嘘ではない）を話す
+        goal = "仲間と連携し、襲撃対象の選定や村人陣営の撹乱戦略を話し合うこと。"
+        
+        return self._generate_llm_utterance(
+            role_goal=goal,
+            is_deceptive_context=False, # 嘘戦略は行わない
+            is_whisper=True
+        )
 
-        Returns:
-            str: Talk message / 発言メッセージ
-        """
-        return super().talk()
+    def attack(self) -> str:
+        """襲撃リクエストに対する応答を返す（最新の戦略に基づいて決定）。"""
+        # 投票・能力行使のロジックは、最新の発話生成で決定された戦略の核を利用する
+        if self.latest_strategy_core and 'target_attack' in self.latest_strategy_core:
+            target_name = self.latest_strategy_core['target_attack']
+            if target_name in self.get_alive_agents():
+                return target_name
+        
+        # 戦略の核が利用できない場合は、フォールバック（既存のランダム選択など）
+        return super().attack()
 
     def vote(self) -> str:
         """Return response to vote request.
@@ -66,13 +81,3 @@ class Werewolf(Agent):
             str: Agent name to vote / 投票対象のエージェント名
         """
         return super().vote()
-
-    def attack(self) -> str:
-        """Return response to attack request.
-
-        襲撃リクエストに対する応答を返す.
-
-        Returns:
-            str: Agent name to attack / 襲撃対象のエージェント名
-        """
-        return super().attack()

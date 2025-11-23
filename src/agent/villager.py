@@ -37,16 +37,18 @@ class Villager(Agent):
         """
         super().__init__(config, name, game_id, Role.VILLAGER)
 
+# src/agent/villager.py の talk() メソッドをオーバーライド
+
     def talk(self) -> str:
-        """Return response to talk request.
-
-        トークリクエストに対する応答を返す.
-
-        Returns:
-            str: Talk message / 発言メッセージ
-        """
-        return super().talk()
-
+        """LLMを用いてトークリクエストに対する応答を返す。"""
+        # 村人陣営の目標
+        goal = "人狼を吊り、村人陣営の勝利に貢献すること。"
+        
+        return self._generate_llm_utterance(
+            role_goal=goal,
+            is_deceptive_context=False,
+            is_whisper=False
+        )
     def vote(self) -> str:
         """Return response to vote request.
 
