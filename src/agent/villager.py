@@ -40,15 +40,17 @@ class Villager(Agent):
 # src/agent/villager.py の talk() メソッドをオーバーライド
 
     def talk(self) -> str:
-        """LLMを用いてトークリクエストに対する応答を返す。"""
-        # 村人陣営の目標
-        goal = "人狼を吊り、村人陣営の勝利に貢献すること。"
-        
-        return self._generate_llm_utterance(
-            role_goal=goal,
-            is_deceptive_context=False,
-            is_whisper=False
-        )
+            """LLMを用いてトークリクエストに対する応答を返す。"""
+            # 村人陣営の目標
+            goal = "人狼を吊り、村人陣営の勝利に貢献すること。"
+            
+            # _generate_llm_utterance の呼び出し
+            return self._generate_llm_utterance(
+                role_goal=goal,
+                is_deceptive_context=False,
+                is_whisper=False
+            )
+    
     def vote(self) -> str:
         """Return response to vote request.
 

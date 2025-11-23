@@ -3,14 +3,15 @@ import json
 import logging
 from typing import Any, Dict, List, Optional
 from openai import OpenAI # 例としてOpenAIを使用
+from .prompt_manager import PromptManager # 新規追加
 
 logger = logging.getLogger(__name__)
 
 class LLMClient:
     def __init__(self):
-        # APIキーは環境変数から読み込むことを推奨
-        self.client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-        self.model = "gpt-4o-mini" # 使用するLLMモデル名
+        # ... 既存の初期化
+        self.model = "gpt-4o-mini"
+        self.prompt_manager = PromptManager() # 新規追加: PromptManagerのインスタンス化
 
     def generate_response(self, system_prompt: str, user_prompt: str, json_mode: bool = False) -> Dict[str, Any]:
         """LLMにプロンプトを送信し、応答を取得する"""
@@ -38,5 +39,12 @@ class LLMClient:
             logger.error(f"LLM APIエラー: {e}")
             return {"error": str(e), "text": "Skip"} # エラー時はスキップ相当の値を返す
 
-# 補足: プロンプトテンプレートは別ファイルで管理することを推奨します。
-# (例: src/utils/prompt_templates.py)
+# PromptManagerのメソッドをラップして利用可能にする
+    def get_generation_prompt(*args, **kwargs) -> str:
+        return self.prompt_manager.get_generation_prompt(*args, **kwargs)
+
+    def get_consistency_check_prompt(*args, **kwargs) -> str:
+        return self.prompt_manager.get_consistency_check_prompt(*args, **kwargs)
+
+    def get_regeneration_prompt(*args, **kwargs) -> str:
+        return self.prompt_manager.get_regeneration_prompt(*args, **kwargs)

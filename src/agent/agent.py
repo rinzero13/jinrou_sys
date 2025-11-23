@@ -247,6 +247,42 @@ class Agent:
         ゲーム終了リクエストに対する処理を行う.
         """
 
+    @timeout
+    def action(self) -> str | None:  # noqa: C901, PLR0911
+        """Execute action according to request type.
+
+        リクエストの種類に応じたアクションを実行する.
+
+        Returns:
+            str | None: Action result string or None / アクションの結果文字列またはNone
+        """
+        match self.request:
+            case Request.NAME:
+                return self.name()
+            case Request.TALK:
+                return self.talk()
+            case Request.WHISPER:
+                return self.whisper()
+            case Request.VOTE:
+                return self.vote()
+            case Request.DIVINE:
+                return self.divine()
+            case Request.GUARD:
+                return self.guard()
+            case Request.ATTACK:
+                return self.attack()
+            case Request.INITIALIZE:
+                self.initialize()
+            case Request.DAILY_INITIALIZE:
+                self.daily_initialize()
+            case Request.DAILY_FINISH:
+                self.daily_finish()
+            case Request.FINISH:
+                self.finish()
+            case _:
+                pass
+        return None
+
 # src/agent/agent.py の変更 (Agentクラスの任意の場所に追加)
 
     def _get_objective_facts(self) -> str:
@@ -308,7 +344,7 @@ class Agent:
 
 # src/agent/agent.py の Agent クラス内にメソッドとして追加
 
-MAX_REGENERATION_ATTEMPTS = 3 # 再生成の最大試行回数
+    MAX_REGENERATION_ATTEMPTS = 3 # 再生成の最大試行回数
 
     def _generate_llm_utterance(self, role_goal: str, is_deceptive_context: bool, is_whisper: bool = False) -> str:
         """LLMを用いて発話を生成し、論理的一貫性をチェックし、修正するループ。"""
@@ -400,39 +436,3 @@ MAX_REGENERATION_ATTEMPTS = 3 # 再生成の最大試行回数
         # 3. 最大試行回数を超えた場合
         # logger.error(f"発話生成が最大試行回数 ({MAX_REGENERATION_ATTEMPTS})を超えて失敗しました。")
         return "Skip"
-
-    @timeout
-    def action(self) -> str | None:  # noqa: C901, PLR0911
-        """Execute action according to request type.
-
-        リクエストの種類に応じたアクションを実行する.
-
-        Returns:
-            str | None: Action result string or None / アクションの結果文字列またはNone
-        """
-        match self.request:
-            case Request.NAME:
-                return self.name()
-            case Request.TALK:
-                return self.talk()
-            case Request.WHISPER:
-                return self.whisper()
-            case Request.VOTE:
-                return self.vote()
-            case Request.DIVINE:
-                return self.divine()
-            case Request.GUARD:
-                return self.guard()
-            case Request.ATTACK:
-                return self.attack()
-            case Request.INITIALIZE:
-                self.initialize()
-            case Request.DAILY_INITIALIZE:
-                self.daily_initialize()
-            case Request.DAILY_FINISH:
-                self.daily_finish()
-            case Request.FINISH:
-                self.finish()
-            case _:
-                pass
-        return None
