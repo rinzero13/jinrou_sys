@@ -10,6 +10,8 @@ from pathlib import Path
 
 import yaml
 
+from dotenv import load_dotenv
+
 from starter import connect
 
 logger = logging.getLogger(__name__)
@@ -47,6 +49,8 @@ def execute(config_path: Path) -> None:
 
 
 if __name__ == "__main__":
+    load_dotenv()
+
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "-c",

@@ -10,6 +10,9 @@ logger = logging.getLogger(__name__)
 class LLMClient:
     def __init__(self):
         # ... 既存の初期化
+        self.client = OpenAI(
+            api_key=os.environ.get("OPENAI_API_KEY")
+        )
         self.model = "gpt-4o-mini"
         self.prompt_manager = PromptManager() # 新規追加: PromptManagerのインスタンス化
 
@@ -27,24 +30,33 @@ class LLMClient:
                 model=self.model,
                 messages=messages,
                 response_format=response_format,
-                temperature=0.7, # 発話生成は高め、判定は低めが推奨
+                temperature=0.7,
             )
             
             content = response.choices[0].message.content
             if json_mode:
-                return json.loads(content)
+                # ログを追加して、JSONパース前のコンテンツを確認できるようにする
+                logger.debug(f"Received JSON content: {content[:50]}...")
+                return json.loads(content) 
             return {"text": content}
             
+        except json.JSONDecodeError as json_e:
+            logger.error(f"LLM APIから無効なJSON応答: {json_e}")
+            # エージェントログには、デバッグのために応答の最初の部分を含める
+            return {"error": f"Invalid JSON: {str(json_e)}", "text": "Skip"}
+            
         except Exception as e:
-            logger.error(f"LLM APIエラー: {e}")
-            return {"error": str(e), "text": "Skip"} # エラー時はスキップ相当の値を返す
+            # ログのレベルを警告からエラーに変更し、より目立たせる
+            logger.error(f"LLM APIエラーによりクラッシュ: {e}", exc_info=True) # exc_info=Trueでスタックトレースを出力
+            # エラー発生を明確に示し、エージェントがこれを受け取る
+            return {"error": str(e), "text": "Skip"}
 
 # PromptManagerのメソッドをラップして利用可能にする
-    def get_generation_prompt(*args, **kwargs) -> str:
+    def get_generation_prompt(self, *args, **kwargs) -> str: # self を追加
         return self.prompt_manager.get_generation_prompt(*args, **kwargs)
 
-    def get_consistency_check_prompt(*args, **kwargs) -> str:
+    def get_consistency_check_prompt(self, *args, **kwargs) -> str: # self を追加
         return self.prompt_manager.get_consistency_check_prompt(*args, **kwargs)
 
-    def get_regeneration_prompt(*args, **kwargs) -> str:
+    def get_regeneration_prompt(self, *args, **kwargs) -> str: # self を追加
         return self.prompt_manager.get_regeneration_prompt(*args, **kwargs)
